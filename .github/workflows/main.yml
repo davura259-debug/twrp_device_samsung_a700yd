@@ -1,0 +1,62 @@
+name: TWRP Recovery Builder
+
+on:
+  workflow_dispatch: # Allows you to manually trigger the build with a button click
+
+env:
+  MANIFEST_URL: "https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git"
+  MANIFEST_BRANCH: "twrp-7.1" # Legacy Android branch matching your phone's era
+  DEVICE_NAME: "a700yd"
+  DEVICE_PATH: "device/samsung/a700yd"
+  BUILD_TARGET: "recoveryimage"
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Device Tree
+      uses: actions/checkout@v4
+      with:
+        path: ${{ env.DEVICE_PATH }}
+
+    - name: Clean and Prepare Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gperf gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip bc cpio
+
+    - name: Install Repo Tool
+      run: |
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        sudo ln -sf ~/bin/repo /usr/bin/repo
+
+    - name: Initialize and Sync TWRP Source
+      run: |
+        mkdir twrp-source && cd twrp-source
+        git config --global user.name "Lucy Custom Builder"
+        git config --global user.email "lucy@twrp.local"
+        repo init --depth=1 -u ${{ env.MANIFEST_URL }} -b ${{ env.MANIFEST_BRANCH }}
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+    - name: Link Device Tree Into Source
+      run: |
+        mv ${{ github.workspace }}/${{ env.DEVICE_PATH }} twrp-source/${{ env.DEVICE_PATH }}
+
+    - name: Compile TWRP Recovery Image
+      run: |
+        cd twrp-source
+        export ALLOW_MISSING_DEPENDENCIES=true
+        source build/envsetup.sh
+        lunch omni_${{ env.DEVICE_NAME }}-eng || lunch twrp_${{ env.DEVICE_NAME }}-eng
+        make clean
+        make ${{ env.BUILD_TARGET }} -j$(nproc --all)
+
+    - name: Upload Compiled Recovery Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: TWRP-Recovery-${{ env.DEVICE_NAME }}
+        path: twrp-source/out/target/product/${{ env.DEVICE_NAME }}/recovery.img
