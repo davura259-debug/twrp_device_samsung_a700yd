@@ -1,0 +1,31 @@
+LOCAL_PATH := device/samsung/a700yd
+
+# Architecture
+TARGET_BOARD_PLATFORM := msm8939
+TARGET_CPU_ABI := arm64-v8a
+TARGET_CPU_ABI2 := armeabi-v7a
+TARGET_ARCH := arm64
+TARGET_ARCH_VARIANT := armv8-a
+TARGET_CPU_VARIANT := generic
+
+# Kernel Properties from Stock Unpack
+BOARD_KERNEL_CMDLINE := console=null androidboot.hardware=qcom user_debug=23 msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci
+BOARD_KERNEL_BASE := 0x80000000
+BOARD_KERNEL_PAGESIZE := 2048
+
+# Flash Partition Sizes (Standard Snapdragon 615 configurations)
+BOARD_BOOTIMAGE_PARTITION_SIZE := 16777216
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
+BOARD_SYSTEMIMAGE_PARTITION_SIZE := 2147483648
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 12531335168
+BOARD_FLASH_BLOCK_SIZE := 131072
+
+# TWRP Graphics & Interface flags
+TW_THEME := portrait_hdpi
+RECOVERY_VARIANT := twrp
+TW_MAX_BRIGHTNESS := 255
+TW_DEFAULT_BRIGHTNESS := 162
+TW_NO_REBOOT_BOOTLOADER := true
+TW_HAS_DOWNLOAD_MODE := true
+TW_INCLUDE_CRYPTO := true
+TW_EXCLUDE_SUPERSU := true
